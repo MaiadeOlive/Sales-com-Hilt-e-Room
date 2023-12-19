@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/latestSalesContainer">
+
+    <activity
+        android:id="@+id/latestSalesContainer"
+        android:name="com.oliveira.maia.app.presentation.view.LatestSalesContainer"
+        android:label="Latest Sales Container">
+
+        <action
+            android:id="@+id/action_latestSalesContainer_to_salesPage"
+            app:destination="@id/salesPage" />
+    </activity>
+
+    <activity
+        android:id="@+id/salesPage"
+        android:name="com.oliveira.maia.app.presentation.view.SalesPage"
+        android:label="Sales Page" />
+</navigation>
