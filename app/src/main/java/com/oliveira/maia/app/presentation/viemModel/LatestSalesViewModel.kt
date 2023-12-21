@@ -1,17 +1,16 @@
 package com.oliveira.maia.app.presentation.viemModel
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.oliveira.maia.app.domain.model.SaleEntity
-import com.oliveira.maia.app.domain.useCase.GetAllSalesUseCase
+import com.oliveira.maia.app.core.data.model.SaleEntity
+import com.oliveira.maia.app.core.domain.useCase.GetAllSalesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,25 +20,36 @@ class LatestSalesViewModel @Inject constructor(
 
     private val _latestSalesState = MutableStateFlow<LatestSalesState>(LatestSalesState.Loading)
     val latestSalesState: StateFlow<LatestSalesState> get() = _latestSalesState
-    val lastThreeSales = mutableListOf<SaleEntity>()
+
+    private val lastThreeSales = mutableListOf<SaleEntity>()
+
+    private val _retryEvent = MutableLiveData<Unit>()
 
     init {
-        viewModelScope.launch {
+        loadLatestSales()
+    }
+
+    private fun loadLatestSales() {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                delay(1000)
-                val latestSales = getLatestSales()
-                _latestSalesState.value = LatestSalesState.Success(latestSales)
-                lastThreeSales.addAll(latestSales.takeLast(3))
+                val latestSales = getAllSalesUseCase.invoke()
+                lastThreeSales.clear()
+
+                var lastThreeSalesCount = latestSales.take(3).toMutableList()
+
+                lastThreeSales.addAll(lastThreeSalesCount)
+                _latestSalesState.value = LatestSalesState.Success(lastThreeSales)
+
             } catch (e: Exception) {
-                _latestSalesState.value = LatestSalesState.Error(e.localizedMessage ?: "Erro desconhecido")
+                _latestSalesState.value =
+                    LatestSalesState.Error(e.localizedMessage ?: "Erro desconhecido")
             }
         }
     }
 
-    private fun getLatestSales(): List<SaleEntity> {
-        return getAllSalesUseCase.invoke()
+    fun retry() {
+        _retryEvent.postValue(Unit)
     }
-
 
     suspend fun getTotalSales(): String {
         return withContext(Dispatchers.IO) {

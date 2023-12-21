@@ -12,10 +12,26 @@
         <action
             android:id="@+id/action_latestSalesContainer_to_salesPage"
             app:destination="@id/salesPage" />
+
+        <action
+            android:id="@+id/action_latestSalesContainer_to_saleDetailsPage"
+            app:destination="@id/saleDetailsPage" />
     </activity>
 
     <activity
         android:id="@+id/salesPage"
         android:name="com.oliveira.maia.app.presentation.view.SalesPage"
-        android:label="Sales Page" />
+        android:label="Sales Page">
+
+    <action
+        android:id="@+id/action_salesPage_to_saleDetailsPage"
+        app:destination="@id/saleDetailsPage" />
+    </activity>
+
+
+
+    <activity
+        android:id="@+id/saleDetailsPage"
+        android:name="com.oliveira.maia.app.presentation.view.SaleDetailsPage"
+        android:label="SaleDetailsPage" />
 </navigation>

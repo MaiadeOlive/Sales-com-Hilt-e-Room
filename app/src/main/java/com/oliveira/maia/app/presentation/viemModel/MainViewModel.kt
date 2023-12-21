@@ -1,4 +1,4 @@
-package com.oliveira.maia.app.presentation.viewModel
+package com.oliveira.maia.app.presentation.viemModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,7 +1,7 @@
-package com.oliveira.maia.app.domain.useCase
+package com.oliveira.maia.app.core.domain.useCase
 
-import com.oliveira.maia.app.data.repository.SaleRepository
-import com.oliveira.maia.app.domain.model.SaleEntity
+import com.oliveira.maia.app.core.data.repository.SaleRepository
+import com.oliveira.maia.app.core.data.model.SaleEntity
 import javax.inject.Inject
 
 class CreateNewSaleUseCase @Inject constructor(private val saleRepository: SaleRepository)  {

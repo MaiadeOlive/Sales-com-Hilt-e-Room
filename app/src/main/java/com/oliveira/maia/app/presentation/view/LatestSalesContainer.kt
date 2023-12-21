@@ -1,52 +1,49 @@
 package com.oliveira.maia.app.presentation.view
 
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.oliveira.maia.app.CustomComponentActivity
-import com.oliveira.maia.app.domain.model.SaleEntity
+import com.oliveira.maia.app.core.data.model.ProductEntity
+import com.oliveira.maia.app.core.data.model.SaleEntity
+import com.oliveira.maia.app.presentation.ui.theme.OmieTheme
 import com.oliveira.maia.app.presentation.viemModel.LatestSalesViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
-class LatestSalesContainer  @Inject constructor(
-    private val viewModel: LatestSalesViewModel,
+class LatestSalesActivity @Inject constructor(
     private val navController: NavController
-) : CustomComponentActivity() {
+) : ComponentActivity() {
 
-    @Composable
-    fun Content() {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            SalesContent(viewModel, navController)
+    private val viewModel: LatestSalesViewModel by viewModels()
 
-            BottomSalesInfo(viewModel)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            OmieTheme {
+                LatestSalesContainer(viewModel, navController)
+            }
         }
     }
 }
 
 @Composable
-fun SalesContent(viewModel: LatestSalesViewModel, navController: NavController) {
+fun LatestSalesContainer(viewModel: LatestSalesViewModel, navController: NavController) {
+    val salesState by viewModel.latestSalesState.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,15 +54,113 @@ fun SalesContent(viewModel: LatestSalesViewModel, navController: NavController) 
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        LazyColumn {
-            items(viewModel.lastThreeSales) { sale ->
-                SalesItem(sale = sale)
+        SalesContent(salesState, viewModel, navController)
+    }
+}
+
+@Composable
+fun SalesContent(
+    salesState: LatestSalesViewModel.LatestSalesState,
+    viewModel: LatestSalesViewModel,
+    navController: NavController,
+) {
+    LazyColumn {
+        when (salesState) {
+            is LatestSalesViewModel.LatestSalesState.Success -> {
+                items(salesState.sales) { sale ->
+                    SaleCardItem(sale = sale)
+                }
             }
-            item {
-                SeeAllItem(
-                    onSeeAllClick = {
-                        navController.navigate("all_sales")
+
+            is LatestSalesViewModel.LatestSalesState.Loading -> {
+                item {
+                    LoadingIndicator()
+                }
+            }
+
+            is LatestSalesViewModel.LatestSalesState.Error -> {
+                item {
+                    ErrorView(errorMessage = salesState.errorMessage) {
+                        viewModel.retry()
                     }
+                }
+            }
+        }
+        item {
+            SeeAllItem {
+                navController.navigate("all_sales")
+            }
+        }
+    }
+}
+
+@Composable
+fun LoadingIndicator() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun ErrorView(errorMessage: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Erro: $errorMessage",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Button(
+            onClick = onRetry,
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Text("Tentar Novamente")
+        }
+    }
+}
+
+
+@Composable
+fun SaleCardItem(sale: SaleEntity) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "N. Venda: ${sale.saleId}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Data: ${sale.orderDate}", style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Cliente: ${sale.clientName}", style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Valor Total: ${sale.totalAmount}",
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
@@ -73,47 +168,24 @@ fun SalesContent(viewModel: LatestSalesViewModel, navController: NavController) 
 }
 
 @Composable
-fun BottomSalesInfo(viewModel: LatestSalesViewModel){
-    var totalSales = remember { "" }
-    LaunchedEffect(viewModel) {
-        totalSales = viewModel.getTotalSales()
-    }
-    Box(Modifier.padding(start = 16.dp, bottom = 120.dp),
-        contentAlignment = Alignment.BottomStart) {
-        Row {
-            Text(
-                text = "Total Vendas ",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            Text(
-                text = " R$$totalSales",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun SalesItem(sale: SaleEntity) {
-    Row(
+fun SaleProductItem(product: ProductEntity) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(8.dp),
     ) {
         Text(
-            text = "Data: ${sale.orderDate}",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.weight(1f)
+            text = "Nome Produto: ${product.productName}",
+            style = MaterialTheme.typography.titleSmall
         )
-        Icon(
-            imageVector = Icons.Default.ArrowForward,
-            contentDescription = "See Details",
-            modifier = Modifier
-                .size(24.dp)
-                .clickable { /* Adicione a lógica para o clique do ícone aqui */ }
+        Text(text = "Descricao: ${product.description}", style = MaterialTheme.typography.bodySmall)
+        Text(
+            text = "Qnt de produtos: ${product.quantity}",
+            style = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            text = "Valor unitario: ${product.unitPrice}",
+            style = MaterialTheme.typography.bodySmall
         )
     }
 }
@@ -122,7 +194,7 @@ fun SalesItem(sale: SaleEntity) {
 fun SeeAllItem(onSeeAllClick: () -> Unit) {
     Row(
         modifier = Modifier
-            .padding(vertical = 8.dp)
+            .padding(horizontal = 8.dp)
             .clickable { onSeeAllClick() }
     ) {
         Text(
