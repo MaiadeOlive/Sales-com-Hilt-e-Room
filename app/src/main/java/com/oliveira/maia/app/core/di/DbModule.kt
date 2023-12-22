@@ -3,9 +3,9 @@ package com.oliveira.maia.app.core.di
 import android.content.Context
 import androidx.room.Room
 import com.oliveira.maia.app.core.data.dataSource.SaleDatabase
-import com.oliveira.maia.app.core.data.model.ProductEntity
-import com.oliveira.maia.app.core.data.model.SaleEntity
-import com.oliveira.maia.app.utils.Constants.SALES_DATABASE
+import com.oliveira.maia.app.core.domain.model.ProductEntity
+import com.oliveira.maia.app.core.domain.model.SaleEntity
+import com.oliveira.maia.app.core.utils.Constants.SALES_DATABASE
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

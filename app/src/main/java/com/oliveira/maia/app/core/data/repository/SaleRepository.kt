@@ -1,7 +1,7 @@
 package com.oliveira.maia.app.core.data.repository
 
 import com.oliveira.maia.app.core.data.dataSource.SaleDao
-import com.oliveira.maia.app.core.data.model.SaleEntity
+import com.oliveira.maia.app.core.domain.model.SaleEntity
 import javax.inject.Inject
 
 class SaleRepository @Inject constructor(private val saleDao: SaleDao) {

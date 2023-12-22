@@ -1,9 +1,9 @@
-package com.oliveira.maia.app.core.data.model
+package com.oliveira.maia.app.core.domain.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.oliveira.maia.app.utils.Constants.PRODUCT_TABLE
+import com.oliveira.maia.app.core.utils.Constants.PRODUCT_TABLE
 
 @Entity(tableName = PRODUCT_TABLE)
 data class ProductEntity(

@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.oliveira.maia.app.core.data.model.SaleEntity
-import com.oliveira.maia.app.utils.Constants.SALES_TABLE
+import com.oliveira.maia.app.core.domain.model.SaleEntity
+import com.oliveira.maia.app.core.utils.Constants.SALES_TABLE
 
 @Dao
 interface SaleDao {

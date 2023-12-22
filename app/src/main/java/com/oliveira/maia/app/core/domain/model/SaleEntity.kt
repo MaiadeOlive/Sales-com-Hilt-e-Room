@@ -1,9 +1,9 @@
-package com.oliveira.maia.app.core.data.model
+package com.oliveira.maia.app.core.domain.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.oliveira.maia.app.utils.Constants.SALES_TABLE
+import com.oliveira.maia.app.core.utils.Constants.SALES_TABLE
 
 @Entity(tableName = SALES_TABLE)
 class SaleEntity (

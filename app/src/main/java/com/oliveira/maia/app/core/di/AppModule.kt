@@ -3,7 +3,7 @@ package com.oliveira.maia.app.core.di
 import androidx.activity.ComponentActivity
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.oliveira.maia.app.core.data.model.ProductEntity
+import com.oliveira.maia.app.core.domain.model.ProductEntity
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

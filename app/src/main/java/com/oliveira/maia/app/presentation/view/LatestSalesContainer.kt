@@ -1,9 +1,5 @@
 package com.oliveira.maia.app.presentation.view
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,35 +11,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.oliveira.maia.app.core.data.model.ProductEntity
-import com.oliveira.maia.app.core.data.model.SaleEntity
-import com.oliveira.maia.app.presentation.ui.theme.OmieTheme
-import com.oliveira.maia.app.presentation.viemModel.LatestSalesViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
-@AndroidEntryPoint
-class LatestSalesActivity @Inject constructor(
-    private val navController: NavController
-) : ComponentActivity() {
-
-    private val viewModel: LatestSalesViewModel by viewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            OmieTheme {
-                LatestSalesContainer(viewModel, navController)
-            }
-        }
-    }
-}
+import com.oliveira.maia.app.core.domain.model.ProductEntity
+import com.oliveira.maia.app.core.domain.model.SaleEntity
+import com.oliveira.maia.app.presentation.viemModel.LatestSalesState
 
 @Composable
-fun LatestSalesContainer(viewModel: LatestSalesViewModel, navController: NavController) {
-    val salesState by viewModel.latestSalesState.collectAsState()
-
+fun LatestSalesContainer(
+    salesState: LatestSalesState,
+    onNavigateToSalesPage: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -54,41 +30,28 @@ fun LatestSalesContainer(viewModel: LatestSalesViewModel, navController: NavCont
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        SalesContent(salesState, viewModel, navController)
-    }
-}
-
-@Composable
-fun SalesContent(
-    salesState: LatestSalesViewModel.LatestSalesState,
-    viewModel: LatestSalesViewModel,
-    navController: NavController,
-) {
-    LazyColumn {
-        when (salesState) {
-            is LatestSalesViewModel.LatestSalesState.Success -> {
-                items(salesState.sales) { sale ->
-                    SaleCardItem(sale = sale)
+        LazyColumn {
+            when {
+                salesState.sales.isNotEmpty() -> {
+                    items(salesState.sales.take(3)) { sale ->
+                        SaleCardItem(sale = sale)
+                    }
                 }
-            }
-
-            is LatestSalesViewModel.LatestSalesState.Loading -> {
-                item {
-                    LoadingIndicator()
+                salesState.isLoading -> {
+                    item {
+                        LoadingIndicator()
+                    }
                 }
-            }
-
-            is LatestSalesViewModel.LatestSalesState.Error -> {
-                item {
-                    ErrorView(errorMessage = salesState.errorMessage) {
-                        viewModel.retry()
+                salesState.sales.isEmpty() -> {
+                    item {
+                        ErrorView(errorMessage = "Não há vendas cadastradas")
                     }
                 }
             }
-        }
-        item {
-            SeeAllItem {
-                navController.navigate("all_sales")
+            item {
+                SeeAllItem {
+                    onNavigateToSalesPage()
+                }
             }
         }
     }
@@ -107,7 +70,7 @@ fun LoadingIndicator() {
 }
 
 @Composable
-fun ErrorView(errorMessage: String, onRetry: () -> Unit) {
+fun ErrorView(errorMessage: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,15 +83,8 @@ fun ErrorView(errorMessage: String, onRetry: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        Button(
-            onClick = onRetry,
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            Text("Tentar Novamente")
-        }
     }
 }
-
 
 @Composable
 fun SaleCardItem(sale: SaleEntity) {

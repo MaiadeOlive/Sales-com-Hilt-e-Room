@@ -1,4 +1,4 @@
-package com.oliveira.maia.app.utils
+package com.oliveira.maia.app.core.utils
 
 object Constants {
     const val SALES_TABLE = "sales_table"

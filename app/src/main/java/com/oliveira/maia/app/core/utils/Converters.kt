@@ -1,9 +1,8 @@
-package com.oliveira.maia.app.utils
+package com.oliveira.maia.app.core.utils
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.oliveira.maia.app.core.data.model.ProductEntity
-import java.util.List
+import com.oliveira.maia.app.core.domain.model.ProductEntity
 import kotlin.jvm.JvmStatic
 
 class Converters {

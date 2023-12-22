@@ -28,8 +28,8 @@ class MainActivity : CustomComponentActivity() {
             OmieTheme {
                 val navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "home") {
-                    composable("home") { HomePage(navController).Content() }
-                    composable("all_sales") { SalesPage(navController).Content() }
+                    composable("home") { HomePage(navController) }
+                    composable("all_sales") { SalesPage(navController) }
                 }
             }
         }

@@ -22,100 +22,82 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import com.oliveira.maia.app.CustomComponentActivity
-import com.oliveira.maia.app.core.data.model.SaleEntity
-import com.oliveira.maia.app.presentation.ui.theme.OmieTheme
-import com.oliveira.maia.app.presentation.viemModel.SalesViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import androidx.navigation.NavHostController
+import com.oliveira.maia.app.core.domain.model.SaleEntity
+import com.oliveira.maia.app.presentation.viemModel.LatestSalesState
+import com.oliveira.maia.app.presentation.viemModel.LatestSalesViewModel
 
-@AndroidEntryPoint
-class SalesPage @Inject constructor(
-    private val navController: NavController
-) : CustomComponentActivity() {
-    @Composable
-    fun Content(
-        viewModel: SalesViewModel = hiltViewModel(),
+@Composable
+fun SalesPage(
+    navHostController: NavHostController,
+    viewModel: LatestSalesViewModel = hiltViewModel()
+) {
+    val state = viewModel.latestSalesState.collectAsState()
+    SalesPageContent(
+        state = state.value,
+        goBack = navHostController::popBackStack
+    )
+}
+
+@Composable
+fun SalesPageContent(
+    state: LatestSalesState,
+    goBack: () -> Unit
+) {
+    Surface(
+        color = Color.White,
+        modifier = Modifier.fillMaxSize()
     ) {
-        OmieTheme {
-            Surface(
-                color = Color.White,
-                modifier = Modifier.fillMaxSize()
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    modifier = Modifier.background(Color.White),
+                    backgroundColor = Color.White,
+                    title = { Text(text = "Histórico de vendas") },
+                    navigationIcon = {
+                        IconButton(onClick = { goBack.invoke() }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        }
+                    }
+                )
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.BottomEnd
             ) {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            modifier = Modifier.background(Color.White),
-                            backgroundColor = Color.White,
-                            title = { Text(text = "Histórico de vendas") },
-                            navigationIcon = {
-                                IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    androidx.compose.material3.Text(
+                        text = "Todas as Vendas",
+                        style = MaterialTheme.typography.h5,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    LazyColumn {
+                        when {
+                            state.sales.isNotEmpty() -> {
+                                items(state.sales) { sale ->
+                                    SaleCardItemAllInfo(sale)
                                 }
                             }
-                        )
-                    }
-                ) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                        contentAlignment = Alignment.BottomEnd
-                    ) {
-                        SalesPage(viewModel, navController)
-                    }
-                }
-            }
-        }
-    }
-}
 
-@Composable
-fun SalesPage(viewModel: SalesViewModel, navController: NavController) {
-    val salesState by viewModel.salesState.collectAsState()
+                            state.isLoading -> {
+                                item {
+                                    LoadingIndicator()
+                                }
+                            }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        androidx.compose.material3.Text(
-            text = "Todas as Vendas",
-            style = MaterialTheme.typography.h5,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        SalesContentAllSales(salesState, viewModel, navController)
-    }
-}
-
-
-@Composable
-fun SalesContentAllSales(
-    salesState: SalesViewModel.SalesState,
-    viewModel: SalesViewModel,
-    navController: NavController,
-) {
-    LazyColumn {
-        when (salesState) {
-            is SalesViewModel.SalesState.Success -> {
-                items(salesState.sales) { sale ->
-                    SaleCardItemAllInfo(sale, onClick = {
-                        navController.navigate("saleDetails/${sale.saleId}")
-                    })
-                }
-            }
-
-            is SalesViewModel.SalesState.Loading -> {
-                item {
-                    LoadingIndicator()
-                }
-            }
-
-            is SalesViewModel.SalesState.Error -> {
-                item {
-                    ErrorView(errorMessage = salesState.errorMessage) {
-                        viewModel.retry()
+                            state.sales.isEmpty() -> {
+                                item {
+                                    ErrorView(errorMessage = "Não há vendas cadastradas")
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -123,9 +105,8 @@ fun SalesContentAllSales(
     }
 }
 
-
 @Composable
-fun SaleCardItemAllInfo(sale: SaleEntity, onClick: (SaleEntity) -> Unit) {
+fun SaleCardItemAllInfo(sale: SaleEntity) {
     androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
